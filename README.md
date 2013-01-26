@@ -11,21 +11,22 @@ your eth0 interface traffic statistics with a COUNTER update and your free memor
 Documentation
 =============
 
-update(intervalSeconds, totalSteps, dataType, updateTimeStamp, updateDataPoint, jsonDb);
-----------------------------------------------------------------------------------------
+__update(intervalSeconds, totalSteps, dataType, updateTimeStamp, updateDataPoint, jsonDb);__
 
 returns a JSON object representing the RRD database.
 
 * intervalSeconds - time between updates
 * totalSteps - total steps of data
 * dataType - GAUGE or COUNTER
+<pre>
     GAUGE - things that have no limits, like the value of raw materials
     COUNTER - things that count up, if we get a value that's less than last time it means it reset... stored as a per second rate
+</pre>
 * updateTimeStamp - unix epoch timestamp of this update
 * updateDataPoint - data object for this update
 * jsonDb - data from previous updates
 
-<code>
+<pre>
 //24 hours with 5 minute interval
 update(5*60, 24*60/5, 'GAUGE', 34, jsonObject);
 
@@ -34,7 +35,7 @@ update(60*60, 30*24/1, 'GAUGE', 34, jsonObject);
 
 //365 days with 1 day interval
 update(24*60*60, 365*24/1, 'GAUGE', 34, jsonObject);
-</code>
+</pre>
 
 JSON Data Format
 ================
@@ -45,12 +46,12 @@ The JSON Object returned by update() contains one data object for each period an
 * d - the data point for the timestamp (the data you want with GAUGE)
 * r - the rate per second for the period if the dataType calculates it (the data you want with COUNTER)
 
-<code>
+<pre>
 {
     'TIMESTAMP': { avgCount: AVERAGECOUNT, d: DATAPOINT, r: RATEPERSEC },
     'TIMESTAMP': { avgCount: AVERAGECOUNT, d: DATAPOINT, r: RATEPERSEC }
 }
-</code>
+</pre>
 
 License
 =======
