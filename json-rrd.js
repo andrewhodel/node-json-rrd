@@ -15,7 +15,7 @@ function dBug(s) {
 exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoint, jsonDb) {
 
     if(typeof(jsonDb)==='undefined') jsonDb = {};
-    updateDataPoint = parseInt(updateDataPoint);
+    updateDataPoint = parseFloat(updateDataPoint);
 
     updateTimeStamp = Math.round((new Date()).getTime() / 1000);
 
