@@ -6,11 +6,11 @@ var lazy = require('lazy');
 // shows basic collection and reporting for linux with node-json-rrd
 
 // json-rrd should use a period of 5 minutes or 300 seconds
-var intervalSeconds = 30
+var intervalSeconds = 300
 // collect 288 steps of data, at a 5 minute interval that is exactly 24 hours (5*288/60)
 var totalSteps = 288
 // collect data every 5 minutes or 300 seconds
-var loopSeconds = 10
+var loopSeconds = 300
 
 var gaugeTest = {};
 var counterTest = {};
