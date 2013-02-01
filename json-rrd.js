@@ -9,13 +9,15 @@
 
 function dBug(s) {
     // uncomment out for debug
-    //console.log(s);
+    console.log(s);
 }
 
 exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoint, jsonDb) {
 
     if(typeof(jsonDb)==='undefined') jsonDb = {};
-    updateDataPoint = parseFloat(updateDataPoint);
+    for (var e=0; e<updateDataPoint.length; e++) {
+        updateDataPoint[e] = parseFloat(updateDataPoint[e]);
+    }
 
     updateTimeStamp = Math.round((new Date()).getTime() / 1000);
 
@@ -40,7 +42,8 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
     dBug('totalSteps: '+totalSteps);
     dBug('dataType: '+dataType);
     dBug('updateTimeStamp: '+updateTimeStamp);
-    dBug('updateDataPoint: '+updateDataPoint);
+    dBug('updateDataPoint: ');
+    dBug(updateDataPoint);
     dBug('jsonDb: ');
     dBug(jsonDb);
 
@@ -48,8 +51,14 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
     if (Object.keys(jsonDb).length==0) {
         // this is the first update
         dBug(ccBlue+'### INSERTING FIRST UPDATE ###'+ccReset);
-        // insert the data
-        jsonDb[updateTimeStamp] = {d:updateDataPoint};
+
+        // create the array of data points
+        jsonDb[updateTimeStamp] = [];
+        // insert the data for each data point
+        for (var e=0; e<updateDataPoint.length; e++) {
+            jsonDb[updateTimeStamp].push({d:updateDataPoint[e]});
+        }
+
     } else {
         // this is not the first update
         dBug(ccBlue+'### PROCESSING '+dataType+' UPDATE ###'+ccReset);
@@ -69,35 +78,45 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
             // being here means that this update is not in the same step group as the previous
             dBug('this update is not in the same step group as the previous');
 
+            // either way we have to create an array of data points here
+            jsonDb[updateTimeStamp] = [];
+
             // handle different dataType
             switch (dataType) {
                 case 'GAUGE':
-                    // insert the data
+
                     dBug('inserting data');
-                    jsonDb[updateTimeStamp] = {d:updateDataPoint};
+                    // insert the data for each data point
+                    for (var e=0; e<updateDataPoint.length; e++) {
+                        jsonDb[updateTimeStamp].push({d:updateDataPoint[e]});
+                    }
+
                     break;
                 case 'COUNTER':
 
+                    // for each data point
+                    for (var e=0; e<updateDataPoint.length; e++) {
+
                     // we need to check for overflow, overflow happens when a counter resets so we check the last values to see if they were close to the limit if the previous update
                     // is 3 times the size or larger, meaning if the current update is 33% or smaller it's probably an overflow
-                    if (jsonDb[Object.keys(jsonDb)[Object.keys(jsonDb).length-1]].d > updateDataPoint*3) {
+                    if (jsonDb[Object.keys(jsonDb)[Object.keys(jsonDb).length-2]][e].d > updateDataPoint[e]*3) {
 
                         // oh no, the counter has overflown so we need to check if this happened near 32 or 64 bit limit
                         dBug('overflow');
 
                         // the 32 bit limit is 2,147,483,647 so we should check if we were within 10% of that either way on the last update
-                        if (jsonDb[Object.keys(jsonDb)[Object.keys(jsonDb).length-1]].d<(2147483647*.1)-2147483647) {
+                        if (jsonDb[Object.keys(jsonDb)[Object.keys(jsonDb).length-2]][e].d<(2147483647*.1)-2147483647) {
                             // this was so close to the limit that we are going to make 32bit adjustments
 
                             // for this calculation we just need to add the remainder of subtracting the last data point from the 32 bit limit to the updateDataPoint
-                            updateDataPoint += 2147483647-jsonDb[Object.keys(jsonDb)[Object.keys(jsonDb).length-1]].d;
+                            updateDataPoint[e] += 2147483647-jsonDb[Object.keys(jsonDb)[Object.keys(jsonDb).length-2]][e].d;
 
                         // the 64 bit limit is 9,223,372,036,854,775,807 so we should check if we were within 1% of that
-                        } else if (jsonDb[Object.keys(jsonDb)[Object.keys(jsonDb).length-1]].d<(9223372036854775807*.01)-9223372036854775807) {
+                        } else if (jsonDb[Object.keys(jsonDb)[Object.keys(jsonDb).length-2]][e].d<(9223372036854775807*.01)-9223372036854775807) {
                             // this was so close to the limit that we are going to make 64bit adjustments
 
                             // for this calculation we just need to add the remainder of subtracting the last data point from the 64 bit limit to the updateDataPoint
-                            updateDataPoint += 9223372036854775807-jsonDb[Object.keys(jsonDb)[Object.keys(jsonDb).length-1]].d;
+                            updateDataPoint[e] += 9223372036854775807-jsonDb[Object.keys(jsonDb)[Object.keys(jsonDb).length-2]][e].d;
 
                         }
 
@@ -105,9 +124,12 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 
                     // for a counter, we need to divide the difference by the tsDifference to gather the value for the last data point
                     dBug('calculating the rate');
-                    var r = (updateDataPoint-jsonDb[Object.keys(jsonDb)[Object.keys(jsonDb).length-1]].d)/tsDifference;
+                    var r = (updateDataPoint[e]-jsonDb[Object.keys(jsonDb)[Object.keys(jsonDb).length-2]][e].d)/tsDifference;
                     // insert the data with the new r
-                    jsonDb[updateTimeStamp] = {d:updateDataPoint,r:r};
+                    dBug('inserting data with rate '+r);
+                    jsonDb[updateTimeStamp].push({d:updateDataPoint[e],r:r});
+
+                    }
 
                     break;
                 default:
@@ -125,46 +147,53 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
                 case 'GAUGE':
                     // this update needs to be averaged with the last
 
+                    // we need to do this for each data point
+                    for (var e=0; e<updateDataPoint.length; e++) {
+
                     // first we need to check if the last update was itself an average
-                    if (jsonDb[Object.keys(jsonDb)[Object.keys(jsonDb).length-1]].avgCount>0) {
+                    if (jsonDb[Object.keys(jsonDb)[Object.keys(jsonDb).length-1]][e].avgCount>0) {
                         // we are averaging with a previous update that was itself an average
                         dBug('we are averaging with a previous update that was itself an average');
 
                         // that means we have to multiply the avgCount of the previous update by the data point of the previous update, add this updateDataPoint, then divide by the avgCount+1
-                        var avg = ((jsonDb[Object.keys(jsonDb)[Object.keys(jsonDb).length-1]].avgCount*jsonDb[Object.keys(jsonDb)[Object.keys(jsonDb).length-1]].d)+updateDataPoint)/(jsonDb[Object.keys(jsonDb)[Object.keys(jsonDb).length-1]].avgCount+1);
+                        var avg = ((jsonDb[Object.keys(jsonDb)[Object.keys(jsonDb).length-1]][e].avgCount*jsonDb[Object.keys(jsonDb)[Object.keys(jsonDb).length-1]][e].d)+updateDataPoint[e])/(jsonDb[Object.keys(jsonDb)[Object.keys(jsonDb).length-1]][e].avgCount+1);
 
                         // set the avgCount to that of the previous data point+1
                         // ts must be set to that of the first otherwise it will loop forever
                         // and insert it
-                        dBug('inserting data point');
-                        jsonDb[Object.keys(jsonDb)[Object.keys(jsonDb).length-1]] = ({avgCount:jsonDb[Object.keys(jsonDb)[Object.keys(jsonDb).length-1]].avgCount+1,d:avg});
+                        dBug('updating data point with avg '+avg);
+                        jsonDb[Object.keys(jsonDb)[Object.keys(jsonDb).length-1]][e] = {avgCount:jsonDb[Object.keys(jsonDb)[Object.keys(jsonDb).length-1]][e].avgCount+1,d:avg};
 
                     } else {
                         // we need to average the previous update with this one
                         dBug('averaging with previous update');
 
                         // we need to add the previous update data point to this one then divide by 2 for the average
-                        var avg = (updateDataPoint+jsonDb[Object.keys(jsonDb)[Object.keys(jsonDb).length-1]].d)/2;
+                        var avg = (updateDataPoint[e]+jsonDb[Object.keys(jsonDb)[Object.keys(jsonDb).length-1]][e].d)/2;
                         // set the avgCount:2
                         // ts must be set to that of the first otherwise it will loop forever
                         // and insert it
-                        dBug('inserting data point');
-                        jsonDb[Object.keys(jsonDb)[Object.keys(jsonDb).length-1]] = {avgCount:2,d:avg};
+                        dBug('updating data point with avg '+avg);
+                        jsonDb[Object.keys(jsonDb)[Object.keys(jsonDb).length-1]][e] = {avgCount:2,d:avg};
 
                         // since we have inserted another data point, and this is a GAUGE we can remove the previous avgCount to save space
                         if (Object.keys(jsonDb).length>1) {
-                            if (jsonDb[Object.keys(jsonDb)[Object.keys(jsonDb).length-2]].avgCount>0) {
+                            if (jsonDb[Object.keys(jsonDb)[Object.keys(jsonDb).length-2]][e].avgCount>0) {
                                 dBug('deleting previous avgCount to save space');
-                                delete jsonDb[Object.keys(jsonDb)[Object.keys(jsonDb).length-2]].avgCount;
+                                delete jsonDb[Object.keys(jsonDb)[Object.keys(jsonDb).length-2]][e].avgCount;
                             }
                         }
 
                     }
 
+                    }
+
                     break;
                 case 'COUNTER':
-                    // increase the counter on the last update to this one
-                    jsonDb[Object.keys(jsonDb)[Object.keys(jsonDb).length-1]].d = updateDataPoint;
+                    // increase the counter on the last update to this one for each data point
+                    for (var e=0; e<updateDataPoint.length; e++) {
+                        jsonDb[Object.keys(jsonDb)[Object.keys(jsonDb).length-1]][e].d = updateDataPoint[e];
+                    }
 
                     break;
                 default:

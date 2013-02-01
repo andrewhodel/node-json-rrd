@@ -1,43 +1,59 @@
 var jsonrrd = require('./json-rrd.js');
 var fs = require('fs');
-var lazy = require('lazy');
 
 // example for node-json-rrd
 // shows basic collection and reporting for linux with node-json-rrd
 
 // json-rrd should use a period of 5 minutes or 300 seconds
-var intervalSeconds = 300
+var intervalSeconds = 8
 // collect 288 steps of data, at a 5 minute interval that is exactly 24 hours (5*288/60)
 var totalSteps = 288
 // collect data every 5 minutes or 300 seconds
-var loopSeconds = 300
+var loopSeconds = 4
 
 var gaugeTest = {};
 var counterTest = {};
 
 function doUp() {
-    var f = new lazy(fs.createReadStream('/proc/meminfo'))
-        .lines
-        .forEach(function(line) {
-            var now = line.toString().split(/\s+/g);
+
+    fs.readFile('/proc/meminfo', function (err, data) {
+
+        var lines = data.toString().split("\n");
+        var update = [];
+        for (var i=0; i<lines.length; i++) {
+            var now = lines[i].toString().split(/\s+/g);
+            if (now[0].indexOf('MemTotal') == 0) {
+                update.push(now[1]);
+            }
             if (now[0].indexOf('MemFree') == 0) {
-                gaugeTest = jsonrrd.update(intervalSeconds, totalSteps, 'GAUGE', now[1], gaugeTest);
-                console.log('### DATA FOR FREEMEM ###');
-                console.log(gaugeTest);
+                update.push(now[1]);
             }
         }
-    );
-    var t = new lazy(fs.createReadStream('/proc/net/dev'))
-        .lines
-        .forEach(function(line) {
-            var now = line.toString().split(/\s+/g);
-            if (now[1].indexOf('eth0') == 0) {
-                counterTest = jsonrrd.update(intervalSeconds, totalSteps, 'COUNTER', now[2], counterTest);
-                console.log('### DATA FOR INTERFACE ###');
-                console.log(counterTest);
+
+        gaugeTest = jsonrrd.update(intervalSeconds, totalSteps, 'GAUGE', update, gaugeTest);
+
+    });
+
+    fs.readFile('/proc/net/dev', function (err, data) {
+
+        var lines = data.toString().split("\n");
+        var update = [];
+        for (var i=0; i<lines.length; i++) {
+            var now = lines[i].toString().split(/\s+/g);
+            if (now.length>1) {
+                if (now[1].indexOf('eth0') == 0) {
+                    // bytes in
+                    update.push(now[2]);
+                    // bytes out
+                    update.push(now[10]);
+                }
             }
         }
-    );
+
+        counterTest = jsonrrd.update(intervalSeconds, totalSteps, 'COUNTER', update, counterTest);
+
+    });
+
 }
 
 setInterval(doUp,loopSeconds*1000);

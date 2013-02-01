@@ -6,12 +6,12 @@ Example
 ======
 
 On a linux system you can run example.js which provides a simple example of collecting and displaying
-your eth0 interface traffic statistics with a COUNTER update and your free memory using a GAUGE.
+your eth0 interface traffic statistics with a COUNTER update and your free/total memory using a GAUGE.
 
 Documentation
 =============
 
-__update(intervalSeconds, totalSteps, dataType, updateTimeStamp, updateDataPoint, jsonDb);__
+__update(intervalSeconds, totalSteps, dataType, updateTimeStamp, updateDataPoint[], jsonDb);__
 
 returns a JSON object representing the RRD database.
 
@@ -23,18 +23,18 @@ returns a JSON object representing the RRD database.
     COUNTER - things that count up, if we get a value that's less than last time it means it reset... stored as a per second rate
 </pre>
 * updateTimeStamp - unix epoch timestamp of this update
-* updateDataPoint - data object for this update
+* updateDataPoint[] - array of data points for the update, you must maintain the same order on following update()'s
 * jsonDb - data from previous updates
 
 <pre>
 //24 hours with 5 minute interval
-update(5*60, 24*60/5, 'GAUGE', 34, jsonObject);
+update(5*60, 24*60/5, 'GAUGE', [34,100], jsonObject);
 
 //30 days with 1 hour interval
-update(60*60, 30*24/1, 'GAUGE', 34, jsonObject);
+update(60*60, 30*24/1, 'GAUGE', [34,100], jsonObject);
 
 //365 days with 1 day interval
-update(24*60*60, 365*24/1, 'GAUGE', 34, jsonObject);
+update(24*60*60, 365*24/1, 'GAUGE', [34,100], jsonObject);
 </pre>
 
 JSON Data Format
@@ -42,14 +42,24 @@ JSON Data Format
 
 The JSON Object returned by update() contains one data object for each period and will not be longer than totalSteps.
 
+Each data object holds an array in order representing each data point you sent in the update().
+
+For each data point the following values are stored.
+
 * avgCount - used internally to handle GAUGE averages
 * d - the data point for the timestamp (the data you want with GAUGE)
 * r - the rate per second for the period if the dataType calculates it (the data you want with COUNTER)
 
 <pre>
 {
-    'TIMESTAMP': { avgCount: AVERAGECOUNT, d: DATAPOINT, r: RATEPERSEC },
-    'TIMESTAMP': { avgCount: AVERAGECOUNT, d: DATAPOINT, r: RATEPERSEC }
+    'TIMESTAMP': [{ avgCount: AVERAGECOUNT, d: DATAPOINT, r: RATEPERSEC },{ avgCount: AVERAGECOUNT, d: DATAPOINT, r: RATEPERSEC }]
+    'TIMESTAMP': [{ avgCount: AVERAGECOUNT, d: DATAPOINT, r: RATEPERSEC },{ avgCount: AVERAGECOUNT, d: DATAPOINT, r: RATEPERSEC }]
+    'TIMESTAMP': [{ avgCount: AVERAGECOUNT, d: DATAPOINT, r: RATEPERSEC },{ avgCount: AVERAGECOUNT, d: DATAPOINT, r: RATEPERSEC }]
+    'TIMESTAMP': [{ avgCount: AVERAGECOUNT, d: DATAPOINT, r: RATEPERSEC },{ avgCount: AVERAGECOUNT, d: DATAPOINT, r: RATEPERSEC }]
+    'TIMESTAMP': [{ avgCount: AVERAGECOUNT, d: DATAPOINT, r: RATEPERSEC },{ avgCount: AVERAGECOUNT, d: DATAPOINT, r: RATEPERSEC }]
+    'TIMESTAMP': [{ avgCount: AVERAGECOUNT, d: DATAPOINT, r: RATEPERSEC },{ avgCount: AVERAGECOUNT, d: DATAPOINT, r: RATEPERSEC }]
+    'TIMESTAMP': [{ avgCount: AVERAGECOUNT, d: DATAPOINT, r: RATEPERSEC },{ avgCount: AVERAGECOUNT, d: DATAPOINT, r: RATEPERSEC }]
+    'TIMESTAMP': [{ avgCount: AVERAGECOUNT, d: DATAPOINT, r: RATEPERSEC },{ avgCount: AVERAGECOUNT, d: DATAPOINT, r: RATEPERSEC }]
 }
 </pre>
 
