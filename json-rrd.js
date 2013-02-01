@@ -9,7 +9,7 @@
 
 function dBug(s) {
     // uncomment out for debug
-    console.log(s);
+    //console.log(s);
 }
 
 exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoint, jsonDb) {
