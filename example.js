@@ -4,17 +4,14 @@ var fs = require('fs');
 // example for node-json-rrd
 // shows basic collection and reporting for linux with node-json-rrd
 
-// json-rrd should use a period of 5 minutes or 300 seconds
 var intervalSeconds = 8
-// collect 288 steps of data, at a 5 minute interval that is exactly 24 hours (5*288/60)
-var totalSteps = 288
-// collect data every 5 minutes or 300 seconds
+var totalSteps = 7
 var loopSeconds = 4
 
 var gaugeTest = {};
 var counterTest = {};
 
-function doUp() {
+function loop() {
 
     fs.readFile('/proc/meminfo', function (err, data) {
 
@@ -31,6 +28,9 @@ function doUp() {
         }
 
         gaugeTest = jsonrrd.update(intervalSeconds, totalSteps, 'GAUGE', update, gaugeTest);
+
+	console.log('\n MemTotal and MemFree, every '+intervalSeconds+' seconds');
+	console.log(gaugeTest);
 
     });
 
@@ -50,12 +50,15 @@ function doUp() {
             }
         }
 
+	console.log('\nenp3s0 traffic counter, every '+intervalSeconds+' seconds');
         counterTest = jsonrrd.update(intervalSeconds, totalSteps, 'COUNTER', update, counterTest);
+
+	console.log(counterTest);
 
     });
 
 }
 
-setInterval(doUp,loopSeconds*1000);
+setInterval(loop,loopSeconds*1000);
 
-doUp();
+loop();

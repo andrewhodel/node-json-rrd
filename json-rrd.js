@@ -218,18 +218,20 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 				jsonDb.d.splice(0, 1);
 				jsonDb.d.push([]);
 				for (var e=0; e<updateDataPoint.length; e++) {
-					jsonDb.d.push(-1);
+					jsonDb.d[jsonDb.d.length-1].push(-1);
 				}
 				if (dataType == 'COUNTER') {
 					jsonDb.r.splice(0, 1);
 					jsonDb.r.push([]);
 					for (var e=0; e<updateDataPoint.length; e++) {
-						jsonDb.r.push(-1);
+						jsonDb.r[jsonDb.r.length-1].push(-1);
 					}
 				}
 
 				// add intervalSeconds to firstUpdateTs
 				jsonDb.firstUpdateTs = jsonDb.firstUpdateTs+(intervalSeconds*1000);
+
+				jsonDb.currentStep--;
 			}
 
 		} else {

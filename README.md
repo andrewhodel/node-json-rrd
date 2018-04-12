@@ -1,12 +1,12 @@
 node-json-rrd - a pure JS [r]ound [r]obin [d]atabase library for Node.js with JSON i/o
 
-Simple RRD's as JSON objects which you can store in MongoDB, files, anywhere you want.
+Simple RRD's as JSON objects.
 
 Example
 ======
 
 On a linux system you can run example.js which provides a simple example of collecting and displaying
-your eth0 interface traffic statistics with a COUNTER update and your free/total memory using a GAUGE.
+your enp3s0 interface traffic statistics with a COUNTER and your free/total memory using a GAUGE.
 
 Documentation
 =============
