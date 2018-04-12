@@ -40,28 +40,22 @@ update(24*60*60, 365*24/1, 'GAUGE', [34,100], jsonObject);
 JSON Data Format
 ================
 
-The JSON Object returned by update() contains one data object for each period and will not be longer than totalSteps.
-
-Each data object holds an array in order representing each data point you sent in the update().
-
-For each data point the following values are stored.
-
-* avgCount - used internally to handle GAUGE averages
-* d - the data point for the timestamp (the data you want with GAUGE)
-* r - the rate per second for the period if the dataType calculates it (the data you want with COUNTER)
+The JSON Object returned by update() looks like this:
 
 <pre>
-{
-    'TIMESTAMP': [{ avgCount: AVERAGECOUNT, d: DATAPOINT, r: RATEPERSEC },{ avgCount: AVERAGECOUNT, d: DATAPOINT, r: RATEPERSEC }]
-    'TIMESTAMP': [{ avgCount: AVERAGECOUNT, d: DATAPOINT, r: RATEPERSEC },{ avgCount: AVERAGECOUNT, d: DATAPOINT, r: RATEPERSEC }]
-    'TIMESTAMP': [{ avgCount: AVERAGECOUNT, d: DATAPOINT, r: RATEPERSEC },{ avgCount: AVERAGECOUNT, d: DATAPOINT, r: RATEPERSEC }]
-    'TIMESTAMP': [{ avgCount: AVERAGECOUNT, d: DATAPOINT, r: RATEPERSEC },{ avgCount: AVERAGECOUNT, d: DATAPOINT, r: RATEPERSEC }]
-    'TIMESTAMP': [{ avgCount: AVERAGECOUNT, d: DATAPOINT, r: RATEPERSEC },{ avgCount: AVERAGECOUNT, d: DATAPOINT, r: RATEPERSEC }]
-    'TIMESTAMP': [{ avgCount: AVERAGECOUNT, d: DATAPOINT, r: RATEPERSEC },{ avgCount: AVERAGECOUNT, d: DATAPOINT, r: RATEPERSEC }]
-    'TIMESTAMP': [{ avgCount: AVERAGECOUNT, d: DATAPOINT, r: RATEPERSEC },{ avgCount: AVERAGECOUNT, d: DATAPOINT, r: RATEPERSEC }]
-    'TIMESTAMP': [{ avgCount: AVERAGECOUNT, d: DATAPOINT, r: RATEPERSEC },{ avgCount: AVERAGECOUNT, d: DATAPOINT, r: RATEPERSEC }]
-}
+{ d: [Array],
+  currentStep: 19,
+  firstUpdateTs: 1523555609625,
+  r: [Array] }
 </pre>
+
+d is an array which is the length you specified in totalSteps to update() that contains the data points
+
+firstUpdateTs is a unix epoch timestamp in milliseconds of the first update in the series
+
+r is an array which is the length you specified in totalSteps to update() that contains the rates for the data points
+
+You can calculate the time of each update by adding the multiple of the value of intervalSeconds which you gave to update() for each time slot.
 
 License
 =======

@@ -41,11 +41,11 @@ function doUp() {
         for (var i=0; i<lines.length; i++) {
             var now = lines[i].toString().split(/\s+/g);
             if (now.length>1) {
-                if (now[1].indexOf('eth0') == 0) {
+                if (now[0].indexOf('enp3s0') == 0) {
                     // bytes in
-                    update.push(now[2]);
+                    update.push(now[1]);
                     // bytes out
-                    update.push(now[10]);
+                    update.push(now[9]);
                 }
             }
         }
