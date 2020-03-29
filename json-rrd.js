@@ -31,6 +31,10 @@ function dBug(s) {
 
 exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoint, jsonDb) {
 
+	if (typeof(updateDataPoint == 'undefined')) {
+		return jsonDb;
+	}
+
 	if (typeof(jsonDb) === 'undefined' || typeof(jsonDb.firstUpdateTs) === 'undefined') {
 		jsonDb = {d:[], currentStep: 0, firstUpdateTs: -1};
 	}
@@ -44,6 +48,11 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 		for (var c=0; c<totalSteps; c++) {
 			var o = [];
 			for (var d=0; d<updateDataPoint.length; d++) {
+				// need to replace undefined data points with -1 regardless
+				if (typeof(updateDataPoint[d]) == 'undefined') {
+					updateDataPoint[d] = -1;
+				}
+
 				o.push(-1);
 			}
 			jsonDb.d.push(o);
