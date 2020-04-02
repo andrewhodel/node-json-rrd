@@ -31,7 +31,7 @@ function dBug(s) {
 
 exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoint, jsonDb) {
 
-	if (typeof(updateDataPoint == 'undefined')) {
+	if (typeof(updateDataPoint) == 'undefined') {
 		return jsonDb;
 	}
 
