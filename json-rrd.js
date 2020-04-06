@@ -106,6 +106,9 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 		}
 	}
 
+	// store updateDataPoint array as lastUpdateDataPoint
+	jsonDb.lastUpdateDataPoint = updateDataPoint;
+
 	// first we need to see if this is the first update or not
 	if (jsonDb.firstUpdateTs == -1) {
 		// this is the first update
