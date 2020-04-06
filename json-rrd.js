@@ -36,7 +36,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 	}
 
 	if (typeof(jsonDb) === 'undefined' || typeof(jsonDb.firstUpdateTs) === 'undefined') {
-		jsonDb = {d:[], currentStep: 0, firstUpdateTs: -1};
+		jsonDb = {d:[], currentStep: 0, firstUpdateTs: null};
 	}
 
 	// generate the steps if needed
@@ -48,12 +48,12 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 		for (var c=0; c<totalSteps; c++) {
 			var o = [];
 			for (var d=0; d<updateDataPoint.length; d++) {
-				// need to replace undefined data points with -1 regardless
+				// need to replace undefined data points with null regardless
 				if (typeof(updateDataPoint[d]) == 'undefined') {
-					updateDataPoint[d] = -1;
+					updateDataPoint[d] = null;
 				}
 
-				o.push(-1);
+				o.push(null);
 			}
 			jsonDb.d.push(o);
 			if (dataType == 'COUNTER') {
@@ -110,7 +110,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 	jsonDb.lastUpdateDataPoint = updateDataPoint;
 
 	// first we need to see if this is the first update or not
-	if (jsonDb.firstUpdateTs == -1) {
+	if (jsonDb.firstUpdateTs == null) {
 		// this is the first update
 		dBug(ccBlue+'### INSERTING FIRST UPDATE ###'+ccReset);
 
@@ -194,7 +194,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 						}
 
 
-						if (jsonDb.d[jsonDb.currentStep-1][e] > -1) {
+						if (jsonDb.d[jsonDb.currentStep-1][e] != null) {
 							// for a counter, we need to divide the difference of this step and the previous step by
 							// the difference in seconds between the updates
 							var rate = updateDataPoint[e]-jsonDb.d[jsonDb.currentStep-1][e];
@@ -222,13 +222,13 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 				jsonDb.d.splice(0, 1);
 				jsonDb.d.push([]);
 				for (var e=0; e<updateDataPoint.length; e++) {
-					jsonDb.d[jsonDb.d.length-1].push(-1);
+					jsonDb.d[jsonDb.d.length-1].push(null);
 				}
 				if (dataType == 'COUNTER') {
 					jsonDb.r.splice(0, 1);
 					jsonDb.r.push([]);
 					for (var e=0; e<updateDataPoint.length; e++) {
-						jsonDb.r[jsonDb.r.length-1].push(-1);
+						jsonDb.r[jsonDb.r.length-1].push(null);
 					}
 				}
 
