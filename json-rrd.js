@@ -145,7 +145,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 		// now check if this update is in the current time slot
 		if (updateTimeStamp > timeSteps[jsonDb.currentStep+1]) {
 			// this update is in a completely new time slot
-			dBug('this update is in a new step');
+			dBug('##### NEW STEP ##### this update is in a new step');
 
 			// increment what time slot we are in
 			jsonDb.currentStep++;
@@ -241,7 +241,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 		} else {
 
 			// being here means that this update is in the same step group as the previous
-			dBug('this update is in the same step as the previous');
+			dBug('##### SAME STEP ##### this update is in the same step as the previous');
 
 			// handle different dataType
 			switch (dataType) {
@@ -268,7 +268,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 							// increment the avg count
 							jsonDb.currentAvgCount++;
 							// then divide by the avgCount
-							avg = avg/(jsonDb.currentAvgCount+1);
+							avg = avg/(jsonDb.currentAvgCount);
 
 							dBug('updating data point with avg '+avg);
 							jsonDb.d[jsonDb.currentStep][e] = avg;
