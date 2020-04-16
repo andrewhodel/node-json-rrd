@@ -148,6 +148,14 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 			// set the currentStep to the currentTimeSlot
 			jsonDb.currentStep = currentTimeSlot;
 
+			// FIXME handle the shifting of the data set here, before inserting the new data point
+			// and shift it by currentTimeSlot
+			//
+			// to handle situations where the existing data needs to be shifted back in the time slots by less
+			// than the number of time slots
+			//
+			// currently this code simply inserts the data point at jsonDb.currentStep
+
 			// handle different dataType
 			switch (dataType) {
 				case 'GAUGE':
