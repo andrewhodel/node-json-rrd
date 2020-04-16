@@ -4,12 +4,21 @@ var fs = require('fs');
 // example for node-json-rrd
 // shows basic collection and reporting for linux with node-json-rrd
 
-var intervalSeconds = 8
-var totalSteps = 7
-var loopSeconds = 4
+var intervalSeconds = 8;
+var totalSteps = 40;
+var loopSeconds = 4;
 
-var gaugeTest = {};
-var counterTest = {};
+if (fs.existsSync('./gaugeTest.db')) {
+	var gaugeTest = JSON.parse(fs.readFileSync('./gaugeTest.db'));
+} else {
+	var gaugeTest = {};
+}
+
+if (fs.existsSync('./counterTest.db')) {
+	var counterTest = JSON.parse(fs.readFileSync('./counterTest.db'));
+} else {
+	var counterTest = {};
+}
 
 function loop() {
 
@@ -28,6 +37,8 @@ function loop() {
         }
 
         gaugeTest = jsonrrd.update(intervalSeconds, totalSteps, 'GAUGE', update, gaugeTest);
+
+	fs.writeFileSync('./gaugeTest.db', JSON.stringify(gaugeTest));
 
 	console.log('\n MemTotal and MemFree, every '+intervalSeconds+' seconds');
 	console.log(gaugeTest);
@@ -55,6 +66,8 @@ function loop() {
         }
 
         counterTest = jsonrrd.update(intervalSeconds, totalSteps, 'COUNTER', update, counterTest);
+
+	fs.writeFileSync('./counterTest.db', JSON.stringify(counterTest));
 
 	console.log('\n' + ifname + ' traffic counter, every '+intervalSeconds+' seconds');
 	console.log(counterTest);

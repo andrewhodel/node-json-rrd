@@ -134,11 +134,12 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 
 		// get the time steps for each position, based on firstUpdateTs
 		var timeSteps = [];
+		var currentTimeSlot = 0;
 		for (var c=0; c<totalSteps; c++) {
 			timeSteps.push(jsonDb.firstUpdateTs+(intervalSeconds*1000*c));
-			if (c > jsonDb.currentStep+1) {
-				// no need to know more than the current timeStep
-				continue;
+
+			if (updateTimeStamp >= jsonDb.firstUpdateTs+(intervalSeconds*1000*c)) {
+				currentTimeSlot = c;
 			}
 		}
 
@@ -147,8 +148,8 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 			// this update is in a completely new time slot
 			dBug('##### NEW STEP ##### this update is in a new step');
 
-			// increment what time slot we are in
-			jsonDb.currentStep++;
+			// set the currentStep to the currentTimeSlot
+			jsonDb.currentStep = currentTimeSlot;
 
 			// handle different dataType
 			switch (dataType) {
