@@ -39,30 +39,8 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 		jsonDb = {d:[], currentStep: 0, firstUpdateTs: null};
 	}
 
-	// generate the steps if needed
-	if (jsonDb.d.length == 0) {
-		if (dataType == 'COUNTER') {
-			// counter types need a rate calculation
-			jsonDb.r = [];
-		}
-		for (var c=0; c<totalSteps; c++) {
-			var o = [];
-			for (var d=0; d<updateDataPoint.length; d++) {
-				// need to replace undefined data points with null regardless
-				if (typeof(updateDataPoint[d]) == 'undefined') {
-					updateDataPoint[d] = null;
-				}
-
-				o.push(null);
-			}
-			jsonDb.d.push(o);
-			if (dataType == 'COUNTER') {
-				jsonDb.r.push(JSON.parse(JSON.stringify(o)));
-			}
-		}
-	}
-
 	for (var e=0; e<updateDataPoint.length; e++) {
+		// set all the points in the updateDataPoint object to be of data type Number
 		updateDataPoint[e] = parseFloat(updateDataPoint[e]);
 	}
 
@@ -91,23 +69,42 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 	dBug('updateDataPoint: ');
 	dBug(updateDataPoint);
 	dBug('jsonDb: ');
-	dBug(util.inspect(jsonDb, {depth: 0}));
-	if (totalSteps > 5) {
-		for (var c=0; c<5; c++) {
-			dBug('data '+jsonDb.d[c]);
-			if (dataType == 'COUNTER') {
-				dBug('rate '+jsonDb.r[c]);
-			}
-		}
-	} else {
-		dBug(jsonDb.d);
-		if (dataType == 'COUNTER') {
-			dBug(jsonDb.r);
-		}
-	}
+	dBug(util.inspect(jsonDb, {depth: 3}));
 
 	// store updateDataPoint array as lastUpdateDataPoint
 	jsonDb.lastUpdateDataPoint = updateDataPoint;
+
+	// if the updateTimeStamp is farther away than firstUpdateTs+(totalSteps*intervalSeconds*1000)
+	if (updateTimeStamp >= jsonDb.firstUpdateTs+(totalSteps*intervalSeconds*1000)) {
+		// set firstUpdateTs to null so this will be considered the first update
+		dBug(ccBlue+'### THIS UPDATE REMOVES OUTDATED DATA ###'+ccReset);
+		jsonDb.firstUpdateTs = null;
+
+		// reset all the data
+		if (dataType == 'COUNTER') {
+			// counter types need a rate calculation
+			jsonDb.r = [];
+		}
+
+		jsonDb.d = [];
+		jsonDb.currentStep = 0;
+		for (var c=0; c<totalSteps; c++) {
+			var o = [];
+			for (var d=0; d<updateDataPoint.length; d++) {
+				// need to replace undefined data points with null regardless
+				if (typeof(updateDataPoint[d]) == 'undefined') {
+					updateDataPoint[d] = null;
+				}
+
+				o.push(null);
+			}
+			jsonDb.d.push(o);
+			if (dataType == 'COUNTER') {
+				jsonDb.r.push(JSON.parse(JSON.stringify(o)));
+			}
+		}
+
+	}
 
 	// first we need to see if this is the first update or not
 	if (jsonDb.firstUpdateTs == null) {
@@ -218,7 +215,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 			// check if the updated slot was the last available
 
 			if (jsonDb.currentStep == totalSteps-1) {
-				dBug(ccRed+'last data point, shifting data set');
+				dBug(ccRed+'last data point, shifting data set'+ccReset);
 				// shift the data set back one by removing the first data point
 				jsonDb.d.splice(0, 1);
 				jsonDb.d.push([]);

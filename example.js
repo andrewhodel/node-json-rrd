@@ -5,7 +5,7 @@ var fs = require('fs');
 // shows basic collection and reporting for linux with node-json-rrd
 
 var intervalSeconds = 8;
-var totalSteps = 40;
+var totalSteps = 10;
 var loopSeconds = 4;
 
 if (fs.existsSync('./gaugeTest.db')) {
