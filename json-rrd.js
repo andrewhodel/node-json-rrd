@@ -29,7 +29,7 @@ function dBug(s) {
 	//console.log(s);
 }
 
-exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoint, jsonDb) {
+exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoint, jsonDb, precision=2) {
 
 	if (typeof(updateDataPoint) == 'undefined') {
 		return jsonDb;
@@ -42,6 +42,14 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 	for (var e=0; e<updateDataPoint.length; e++) {
 		// set all the points in the updateDataPoint object to be of data type Number
 		updateDataPoint[e] = parseFloat(updateDataPoint[e]);
+
+		// round the number to the precision specified
+		var to_round_precision = 10;
+		for (var p=0; p<precision-1; p++) {
+			to_round_precision *= to_round_precision;
+		}
+		updateDataPoint[e] = Math.round(updateDataPoint[e] * to_round_precision) / to_round_precision;
+
 	}
 
 	updateTimeStamp = Math.round(Date.now());
