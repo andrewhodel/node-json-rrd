@@ -25,7 +25,7 @@ returns a JSON object representing the RRD database.
 * updateTimeStamp		seconds since unix epoch, not milliseconds
 * updateDataPoint[]		array of data points for the update, you must maintain the same order on following update()'s
 * jsonDb			data from previous updates
-* precision (optional)		number of decimal places to round to for non whole numbers
+* precision (optional)		number of decimal places to round to for non whole numbers, default 2
 
 <pre>
 //24 hours with 5 minute interval
