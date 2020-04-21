@@ -26,7 +26,7 @@ var util = require('util');
 
 function dBug(s) {
 	// uncomment out for debug
-	//console.log(s);
+	console.log(s);
 }
 
 exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoint, jsonDb, precision=2) {
@@ -83,9 +83,10 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 	jsonDb.lastUpdateDataPoint = updateDataPoint;
 
 	// if the updateTimeStamp is farther away than firstUpdateTs+(totalSteps*intervalSeconds*1000)
-	if (updateTimeStamp >= jsonDb.firstUpdateTs+(totalSteps*intervalSeconds*1000)) {
+	// then it is an entirely new chart
+	if (updateTimeStamp >= jsonDb.firstUpdateTs+(totalSteps*2*intervalSeconds*1000)) {
 		// set firstUpdateTs to null so this will be considered the first update
-		dBug(ccBlue+'### THIS UPDATE REMOVES OUTDATED DATA ###'+ccReset);
+		dBug(ccBlue+'### THIS UPDATE IS SO MUCH NEWER THAN THE EXISTING DATA THAT IT REPLACES IT ###'+ccReset);
 		jsonDb.firstUpdateTs = null;
 
 		// reset all the data
@@ -151,24 +152,68 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 		// now check if this update is in the current time slot
 		if (updateTimeStamp > timeSteps[jsonDb.currentStep+1]) {
 			// this update is in a completely new time slot
-			dBug('##### NEW STEP ##### this update is in a new step');
+			dBug(ccBlue+'##### NEW STEP ##### this update is in a new step'+ccReset);
 
 			// set the currentStep to the currentTimeSlot
 			jsonDb.currentStep = currentTimeSlot;
 
-			// FIXME handle the shifting of the data set here, before inserting the new data point
-			// and shift it by currentTimeSlot
-			//
-			// to handle situations where the existing data needs to be shifted back in the time slots by less
-			// than the number of time slots
-			//
-			// currently this code simply inserts the data point at jsonDb.currentStep
+			// shift the data set
+			if (jsonDb.currentStep >= totalSteps-1) {
+
+				// calculate how much to shift by
+				var shift = 1;
+				if (updateTimeStamp >= jsonDb.firstUpdateTs+(totalSteps*intervalSeconds*1000)) {
+					// this update needs to shift by more than 1 but obviously not more than the entire data set length
+					// because if that were true, the data would have already been reset
+					var time_diff = updateTimeStamp - (jsonDb.firstUpdateTs+(totalSteps*intervalSeconds*1000));
+					// shift by the number of steps beyond the last considering the original firstUpdateTs
+					shift = Math.ceil((time_diff/1000)/intervalSeconds)-1;
+				}
+
+				if (shift > 0) {
+
+					// shift the data set
+					dBug(ccRed+'shifting data set by: ' + shift + ccReset);
+
+					// remove the first _shift_ entries
+					jsonDb.d.splice(0, shift);
+					// add empty entries to the end _shift_ times
+					for (var e=0; e<shift; e++) {
+						var n = [];
+						for (var ee=0; ee<updateDataPoint.length; ee++) {
+							n.push(null);
+						}
+						jsonDb.d.push(n);
+					}
+
+					if (dataType == 'COUNTER') {
+						// remove the first _shift_ entries
+						jsonDb.r.splice(0, shift);
+						// add empty entries to the end _shift_ times
+						for (var e=0; e<shift; e++) {
+							var n = [];
+							for (var ee=0; ee<updateDataPoint.length; ee++) {
+								n.push(null);
+							}
+							jsonDb.r.push([]);
+						}
+					}
+
+					// add intervalSeconds to firstUpdateTs
+					jsonDb.firstUpdateTs = jsonDb.firstUpdateTs+(intervalSeconds*1000*shift);
+
+					jsonDb.currentStep -= shift;
+					dBug(ccRed+'changed currentStep: ' + jsonDb.currentStep + ccReset);
+
+				}
+			}
+
+			dBug(ccBlue+'inserting data at: ' + jsonDb.currentStep + ccReset);
 
 			// handle different dataType
 			switch (dataType) {
 				case 'GAUGE':
 
-					dBug('inserting data');
 					// insert the data for each data point
 					for (var e=0; e<updateDataPoint.length; e++) {
 						jsonDb.d[jsonDb.currentStep][e] = updateDataPoint[e];
@@ -226,30 +271,6 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 					break;
 				default:
 					dBug('unsupported dataType '+dataType);
-			}
-
-			// check if the updated slot was the last available
-
-			if (jsonDb.currentStep == totalSteps-1) {
-				dBug(ccRed+'last data point, shifting data set'+ccReset);
-				// shift the data set back one by removing the first data point
-				jsonDb.d.splice(0, 1);
-				jsonDb.d.push([]);
-				for (var e=0; e<updateDataPoint.length; e++) {
-					jsonDb.d[jsonDb.d.length-1].push(null);
-				}
-				if (dataType == 'COUNTER') {
-					jsonDb.r.splice(0, 1);
-					jsonDb.r.push([]);
-					for (var e=0; e<updateDataPoint.length; e++) {
-						jsonDb.r[jsonDb.r.length-1].push(null);
-					}
-				}
-
-				// add intervalSeconds to firstUpdateTs
-				jsonDb.firstUpdateTs = jsonDb.firstUpdateTs+(intervalSeconds*1000);
-
-				jsonDb.currentStep--;
 			}
 
 		} else {
