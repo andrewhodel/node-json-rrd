@@ -26,7 +26,7 @@ var util = require('util');
 
 function dBug(s) {
 	// uncomment out for debug
-	console.log(s);
+	//console.log(s);
 }
 
 exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoint, jsonDb, precision=2) {
@@ -206,6 +206,12 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 					dBug(ccRed+'changed currentStep: ' + jsonDb.currentStep + ccReset);
 
 				}
+			}
+
+			if (jsonDb.currentStep+1 == totalSteps) {
+				// this is needed after a shift of more than 1 but less than totalSteps
+				// in case there is an update which is beyond the last when calculated against a new firstUpdateTs that may be milliseconds beyond the previous firstUpdateTs
+				jsonDb.currentStep--;
 			}
 
 			dBug(ccBlue+'inserting data at: ' + jsonDb.currentStep + ccReset);
