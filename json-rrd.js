@@ -29,6 +29,17 @@ function dBug(s) {
 	//console.log(s);
 }
 
+function round_to_precision(n, precision) {
+
+	var to_round_precision = 10;
+	for (var p=0; p<precision-1; p++) {
+		to_round_precision *= to_round_precision;
+	}
+
+	return Math.round(n * to_round_precision) / to_round_precision;
+
+}
+
 exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoint, jsonDb, precision=2) {
 
 	if (typeof(updateDataPoint) == 'undefined') {
@@ -44,11 +55,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 		updateDataPoint[e] = parseFloat(updateDataPoint[e]);
 
 		// round the number to the precision specified
-		var to_round_precision = 10;
-		for (var p=0; p<precision-1; p++) {
-			to_round_precision *= to_round_precision;
-		}
-		updateDataPoint[e] = Math.round(updateDataPoint[e] * to_round_precision) / to_round_precision;
+		updateDataPoint[e] = round_to_precision(updateDataPoint[e], precision);
 
 	}
 
@@ -247,6 +254,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 
 								// for this calculation we just need to add the remainder of subtracting the last data point from the 32 bit limit to the updateDataPoint
 								updateDataPoint[e] += 2147483647-jsonDb.d[jsonDb.currentStep-1][e];
+								updateDataPoint[e] = round_to_precision(updateDataPoint[e], precision);
 
 								// the 64 bit limit is 9,223,372,036,854,775,807 so we should check if we were within 1% of that
 							} else if (jsonDb.d[jsonDb.currentStep][e]<(9223372036854775807*.01)-9223372036854775807) {
@@ -254,6 +262,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 
 								// for this calculation we just need to add the remainder of subtracting the last data point from the 64 bit limit to the updateDataPoint
 								updateDataPoint[e] += 9223372036854775807-jsonDb.d[jsonDb.currentStep-1][e];
+								updateDataPoint[e] = round_to_precision(updateDataPoint[e], precision);
 
 							}
 						}
@@ -312,7 +321,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 							avg = avg/(jsonDb.currentAvgCount);
 
 							dBug('updating data point with avg '+avg);
-							jsonDb.d[jsonDb.currentStep][e] = avg;
+							jsonDb.d[jsonDb.currentStep][e] = round_to_precision(avg, precision);
 
 						} else {
 							// we need to average the previous update with this one
@@ -324,7 +333,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 							jsonDb.currentAvgCount = 2;
 							// and insert it
 							dBug('updating data point with avg '+avg);
-							jsonDb.d[jsonDb.currentStep][e] = avg;
+							jsonDb.d[jsonDb.currentStep][e] = round_to_precision(avg, precision);
 
 						}
 
@@ -349,27 +358,5 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 
 	// return the object
 	return jsonDb;
-
-};
-
-exports.graph = function (intervalSeconds, totalSteps, dataType, jsonDb, graphType) {
-
-	// intervalSeconds - time between updates
-	// totalSteps - total steps of data
-	// dataType - GAUGE or COUNTER
-	// jsonDb - data from previous updates
-	// graphType - SVG
-	//  SVG - string response of SVG code
-	//
-	// returns graph of graphType
-
-	// if you figured each column of pixels took 1 byte which is extremely conservative
-	// then each data point at 1 pixel per data point would take at least 100 bytes to show
-	// for a 100px high chart
-
-	// if you were to just send the data and graph it in the browser, then you could almost
-	// have a uint_128 for the same bandwidth cost and have much finer detail in the data
-	// and you would remain with more detail even with a uint_16 considering the cost
-	// and unknown protocol requirements of expecting each rgb color value to be your makeshift array
 
 };
