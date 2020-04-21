@@ -275,7 +275,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 							dBug('calculating the rate for '+rate+' units over '+intervalSeconds+' seconds');
 							rate = rate/intervalSeconds;
 							dBug('inserting data with rate '+rate+ ' at time slot '+jsonDb.currentStep);
-							jsonDb.r[jsonDb.currentStep][e] = rate;
+							jsonDb.r[jsonDb.currentStep][e] = round_to_precision(rate, precision);
 						}
 
 						// insert the data
