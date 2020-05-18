@@ -1,7 +1,7 @@
 {
   "name": "json-rrd",
   "version": "1.0.0",
-  "description": "a round robin database using json for node",
+  "description": "a round robin datastore using json for node",
   "main": "json-rrd.js",
   "scripts": {
     "test": "node example.js"
@@ -14,7 +14,7 @@
     "rrd",
     "round",
     "robin",
-    "database",
+    "datastore",
     "json"
   ],
   "author": "andrewhodel@gmail.com",

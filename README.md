@@ -1,4 +1,4 @@
-node-json-rrd - a pure JS [r]ound [r]obin [d]atabase library for Node.js with JSON i/o
+node-json-rrd - a pure JS [r]ound [r]obin [d]atastore library for Node.js with JSON i/o
 
 Simple RRD's as JSON objects.
 
@@ -13,7 +13,7 @@ Documentation
 
 __update(intervalSeconds, totalSteps, dataType, updateTimeStamp, updateDataPoint[], jsonDb, precision=2);__
 
-returns a JSON object representing the RRD database.
+returns a JSON object representing the RRD datastore.
 
 * intervalSeconds		time between updates
 * totalSteps			total steps of data
