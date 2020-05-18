@@ -135,7 +135,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 		}
 
 		// set the firstUpdateTs
-		jsonDb.firstUpdateTs = Date.now();
+		jsonDb.firstUpdateTs = updateTimeStamp;
 
 	} else {
 
