@@ -246,7 +246,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 						if (jsonDb.d[jsonDb.currentStep-1][e] > updateDataPoint[e]*3) {
 
 							// oh no, the counter has overflown so we need to check if this happened near 32 or 64 bit limit
-							dBug(ccBlue+'overflow');
+							dBug(ccBlue+'overflow'+ccReset);
 
 							// the 32 bit limit is 2,147,483,647 so we should check if we were within 10% of that either way on the last update
 							if (jsonDb.d[jsonDb.currentStep][e]<(2147483647*.1)-2147483647) {
