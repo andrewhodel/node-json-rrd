@@ -54,7 +54,7 @@ function loop() {
         for (var i=0; i<lines.length; i++) {
             var now = lines[i].toString().split(/\s+/g);
             if (now.length>1) {
-                if (now[0].indexOf('enp') == 0 || now[0].indexOf('eth') == 0 || now[0].indexOf('wlan') == 0) {
+                if (now[0].indexOf('enp') == 0 || now[0].indexOf('eth') == 0 || now[0].indexOf('wlan') == 0, now[0].indexOf('wlp') == 0 || now[0].indexOf('lo') == 0) {
                     // bytes in
                     update.push(now[1]);
                     // bytes out
