@@ -6,7 +6,7 @@ Example
 ======
 
 On a linux system you can run example.js which provides a simple example of collecting and displaying
-your enp3s0 interface traffic statistics with a COUNTER and your free/total memory using a GAUGE.
+the first interface traffic statistics with a COUNTER and the free/total memory using a GAUGE.
 
 Documentation
 =============
