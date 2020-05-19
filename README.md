@@ -11,7 +11,7 @@ your enp3s0 interface traffic statistics with a COUNTER and your free/total memo
 Documentation
 =============
 
-__update(intervalSeconds, totalSteps, dataType, updateTimeStamp, updateDataPoint[], jsonDb, precision=2);__
+__update(intervalSeconds, totalSteps, dataType, updateDataPoint[], jsonDb, precision=2);__
 
 returns a JSON object representing the RRD datastore.
 
@@ -22,7 +22,6 @@ returns a JSON object representing the RRD datastore.
     GAUGE - things that have no limits, like the value of raw materials
     COUNTER - things that count up, if we get a value that's less than last time it means it reset... stored as a per second rate
 </pre>
-* updateTimeStamp		seconds since unix epoch, not milliseconds
 * updateDataPoint[]		array of data points for the update, you must maintain the same order on following update()'s
 * jsonDb			data from previous updates
 * precision (optional)		number of decimal places to round to for non whole numbers, default 2
@@ -32,10 +31,10 @@ returns a JSON object representing the RRD datastore.
 update(5*60, 24*60/5, 'GAUGE', [34,100], jsonObject);
 
 //30 days with 1 hour interval
-update(60*60, 30*24/1, 'GAUGE', [34,100], jsonObject);
+update(60*60, 30*24, 'GAUGE', [34,100], jsonObject);
 
 //365 days with 1 day interval
-update(24*60*60, 365*24/1, 'GAUGE', [34,100], jsonObject);
+update(24*60*60, 365*24, 'GAUGE', [34,100], jsonObject);
 </pre>
 
 JSON Data Format
