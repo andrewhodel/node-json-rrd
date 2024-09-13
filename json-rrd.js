@@ -64,8 +64,8 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 	// intervalSeconds - time between updates
 	// totalSteps - total steps of data
 	// dataType - GAUGE or COUNTER
-	//  GAUGE - things that have no limits, like the value of raw materials
-	//  COUNTER - things that count up, if we get a value that's less than last time it means it reset... stored as a per second rate
+	//  GAUGE - values that stay within the range of defined integer types, like the value of raw materials.
+	//  COUNTER - values that count and can exceed the maximum of a defined integer type.
 	// updateTimeStamp - unix epoch timestamp of this update
 	// updateDataPoint - data object for this update
 	// jsonDb - data from previous updates
@@ -122,7 +122,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 
 	}
 
-	// first we need to see if this is the first update or not
+	// first, check if this is the first update or not
 	if (jsonDb.firstUpdateTs == null) {
 		// this is the first update
 		dBug(ccBlue+'### INSERTING FIRST UPDATE ###'+ccReset);
@@ -241,26 +241,29 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 					// for each data point
 					for (var e=0; e<updateDataPoint.length; e++) {
 
-						// we need to check for overflow, overflow happens when a counter resets so we check the last values to see if they were close to the limit if the previous update
+						// check for overflow, overflow happens when a counter resets
+						// check the last values to see if they were close to the limit if the previous update
 						// is 3 times the size or larger, meaning if the current update is 33% or smaller it's probably an overflow
 						if (jsonDb.d[jsonDb.currentStep-1][e] > updateDataPoint[e]*3) {
 
-							// oh no, the counter has overflowed so we need to check if this happened near 32 or 64 bit limit
+							// the counter has overflowed, check if this happened near 32 or 64 bit limit
 							dBug(ccBlue+'overflow'+ccReset);
 
-							// the 32 bit limit is 2,147,483,647 so we should check if we were within 10% of that either way on the last update
+							// the 32 bit limit is 2,147,483,647
+							// check if it was within 10% of that in the last update
 							if (jsonDb.d[jsonDb.currentStep][e]<(2147483647*.1)-2147483647) {
-								// this was so close to the limit that we are going to make 32bit adjustments
+								// this was so close to the limit that 32bit adjustments are going to be made
 
-								// for this calculation we just need to add the remainder of subtracting the last data point from the 32 bit limit to the updateDataPoint
+								// for this calculation, add the remainder of subtracting the last data point from the 32 bit limit to the updateDataPoint
 								updateDataPoint[e] += 2147483647-jsonDb.d[jsonDb.currentStep-1][e];
 								updateDataPoint[e] = round_to_precision(updateDataPoint[e], precision);
 
-								// the 64 bit limit is 9,223,372,036,854,775,807 so we should check if we were within 1% of that
+								// the 64 bit limit is 9,223,372,036,854,775,807
+								// check if it was within 1% of that
 							} else if (jsonDb.d[jsonDb.currentStep][e]<(9223372036854775807*.01)-9223372036854775807) {
-								// this was so close to the limit that we are going to make 64bit adjustments
+								// this was so close to the limit that 64bit adjustments are going to be made
 
-								// for this calculation we just need to add the remainder of subtracting the last data point from the 64 bit limit to the updateDataPoint
+								// for this calculation, add the remainder of subtracting the last data point from the 64 bit limit to the updateDataPoint
 								updateDataPoint[e] += 9223372036854775807-jsonDb.d[jsonDb.currentStep-1][e];
 								updateDataPoint[e] = round_to_precision(updateDataPoint[e], precision);
 
@@ -269,7 +272,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 
 
 						if (jsonDb.d[jsonDb.currentStep-1][e] != null) {
-							// for a counter, we need to divide the difference of this step and the previous step by
+							// for a counter, divide the difference of this step and the previous step by
 							// the difference in seconds between the updates
 							var rate = updateDataPoint[e]-jsonDb.d[jsonDb.currentStep-1][e];
 							dBug('calculating the rate for '+rate+' units over '+intervalSeconds+' seconds');
@@ -299,16 +302,17 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 				case 'GAUGE':
 					// this update needs to be averaged with the last
 
-					// we need to do this for each data point
+					// do this for each data point
 					for (var e=0; e<updateDataPoint.length; e++) {
 
 						if (jsonDb.currentAvgCount > 1) {
-							// we are averaging with a previous update that was itself an average
-							dBug('we are averaging with a previous update that was itself an average');
+							// average with a previous update that was itself an average
+							dBug('averaging with a previous update that was itself an average');
 
-							// that means we have to multiply the avgCount of the previous update by the data point of the previous update
+							// that means multiply the avgCount of the previous update by the data point of the previous update
 							if (jsonDb.currentStep == 0) {
-								// this is the first update, we need to average with currentStep not the previous step
+								// this is the first update
+								// average with currentStep not the previous step
 								var avg = jsonDb.currentAvgCount*jsonDb.d[jsonDb.currentStep][e];
 							} else {
 								var avg = jsonDb.currentAvgCount*jsonDb.d[jsonDb.currentStep-1][e];
@@ -324,10 +328,10 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 							jsonDb.d[jsonDb.currentStep][e] = round_to_precision(avg, precision);
 
 						} else {
-							// we need to average the previous update with this one
+							// average the previous update with this one
 							dBug('averaging with previous update');
 
-							// we need to add the previous update data point to this one then divide by 2 for the average
+							// add the previous update data point to this one then divide by 2 for the average
 							var avg = (updateDataPoint[e]+jsonDb.d[jsonDb.currentStep][e])/2;
 							// set the avgCount to 2
 							jsonDb.currentAvgCount = 2;
