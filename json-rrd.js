@@ -15,15 +15,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 var util = require('util');
 
-// 24 hours with 5 minute interval
-// update(5*60, 24*60/5, 'GAUGE', 34, jsonObject);
-
-// 30 days with 1 hour interval
-// update(60*60, 30*24/1, 'GAUGE', 34, jsonObject);
-
-// 365 days with 1 day interval
-// update(24*60*60, 365*24/1, 'GAUGE', 34, jsonObject);
-
 function dBug(s) {
 	// uncomment out for debug
 	//console.log(s);
@@ -41,6 +32,15 @@ function round_to_precision(n, precision) {
 }
 
 exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoint, jsonDb, precision=2) {
+
+	// 24 hours with 5 minute interval
+	// update(5*60, 24*60/5, 'GAUGE', [34], jsonObject);
+
+	// 30 days with 1 hour interval
+	// update(60*60, 30*24/1, 'GAUGE', [34], jsonObject);
+
+	// 365 days with 1 day interval
+	// update(24*60*60, 365*24/1, 'GAUGE', [34], jsonObject);
 
 	if (typeof(updateDataPoint) == 'undefined') {
 		return jsonDb;
@@ -285,7 +285,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 
 					break;
 				default:
-					dBug('unsupported dataType '+dataType);
+					dBug('unsupported dataType: ' + dataType);
 			}
 
 		} else {
@@ -349,7 +349,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 
 					break;
 				default:
-					dBug('unsupported dataType '+dataType);
+					dBug('unsupported dataType: ' + dataType);
 
 			}
 		}
