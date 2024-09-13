@@ -59,7 +59,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 
 	}
 
-	updateTimeStamp = Math.round(Date.now());
+	updateTimeStamp = Date.now();
 
 	// intervalSeconds - time between updates
 	// totalSteps - total steps of data
