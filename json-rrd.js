@@ -172,8 +172,9 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 		}
 
 		// now check if this update is in the current time slot
-		if (updateTimeStamp >= timeSteps[currentStep]) {
-			// this update is in a completely new time slot
+		if (updateTimeStamp >= timeSteps[currentStep] && currentStep !== 0) {
+			// this update is in a new time slot
+			// and it is not the first time slot (multiple updates can happen in the first time slot)
 			dBug(ccBlue+'##### NEW STEP ##### this update is in a new step'+ccReset);
 
 			// shift the data set
