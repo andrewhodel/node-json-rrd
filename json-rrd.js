@@ -42,8 +42,22 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 	// 365 days with 1 day interval
 	// update(24*60*60, 365*24/1, 'GAUGE', [34], jsonObject);
 
-	if (typeof(updateDataPoint) == 'undefined') {
-		return jsonDb;
+	if (isNaN(intervalSeconds) === true) {
+		throw new Error('intervalSeconds must be a number.');
+	}
+
+	if (typeof(totalSteps) !== 'number') {
+		throw new Error('totalSteps must be a number.');
+	}
+
+	if (typeof(dataType) !== 'string') {
+		throw new Error('dataType must be a string of "GAUGE" or "COUNTER".');
+	}
+
+	if (typeof(updateDataPoint) === 'object' && updateDataPoint.length > 0) {
+		// updateDataPoint is valid
+	} else {
+		throw new Error('updateDataPoint must be an array of numbers.');
 	}
 
 	if (typeof(jsonDb) === 'undefined' || typeof(jsonDb.firstUpdateTs) === 'undefined') {
@@ -59,7 +73,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 
 	}
 
-	updateTimeStamp = Date.now();
+	var updateTimeStamp = Date.now();
 
 	// intervalSeconds - time between updates
 	// totalSteps - total steps of data
@@ -97,7 +111,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 		jsonDb.firstUpdateTs = null;
 
 		// reset all the data
-		if (dataType == 'COUNTER') {
+		if (dataType === 'COUNTER') {
 			// counter types need a rate calculation
 			jsonDb.r = [];
 		}
@@ -108,14 +122,14 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 			var o = [];
 			for (var d=0; d<updateDataPoint.length; d++) {
 				// need to replace undefined data points with null regardless
-				if (typeof(updateDataPoint[d]) == 'undefined') {
+				if (typeof(updateDataPoint[d]) === 'undefined') {
 					updateDataPoint[d] = null;
 				}
 
 				o.push(null);
 			}
 			jsonDb.d.push(o);
-			if (dataType == 'COUNTER') {
+			if (dataType === 'COUNTER') {
 				jsonDb.r.push(JSON.parse(JSON.stringify(o)));
 			}
 		}
@@ -123,7 +137,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 	}
 
 	// first, check if this is the first update or not
-	if (jsonDb.firstUpdateTs == null) {
+	if (jsonDb.firstUpdateTs === null) {
 		// this is the first update
 		dBug(ccBlue+'### INSERTING FIRST UPDATE ###'+ccReset);
 
@@ -193,7 +207,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 						jsonDb.d.push(n);
 					}
 
-					if (dataType == 'COUNTER') {
+					if (dataType === 'COUNTER') {
 						// remove the first _shift_ entries
 						jsonDb.r.splice(0, shift);
 						// add empty entries to the end _shift_ times
@@ -215,7 +229,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 				}
 			}
 
-			if (jsonDb.currentStep+1 == totalSteps) {
+			if (jsonDb.currentStep+1 === totalSteps) {
 				// this is needed after a shift of more than 1 but less than totalSteps
 				// in case there is an update which is beyond the last when calculated against a new firstUpdateTs that may be milliseconds beyond the previous firstUpdateTs
 				jsonDb.currentStep--;
@@ -310,7 +324,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 							dBug('averaging with a previous update that was itself an average');
 
 							// that means multiply the avgCount of the previous update by the data point of the previous update
-							if (jsonDb.currentStep == 0) {
+							if (jsonDb.currentStep === 0) {
 								// this is the first update
 								// average with currentStep not the previous step
 								var avg = jsonDb.currentAvgCount*jsonDb.d[jsonDb.currentStep][e];
