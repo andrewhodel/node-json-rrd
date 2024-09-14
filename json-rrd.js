@@ -57,11 +57,12 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 	if (typeof(updateDataPoint) === 'object' && updateDataPoint.length > 0) {
 		// updateDataPoint is valid
 	} else {
+		console.log(updateDataPoint);
 		throw new Error('updateDataPoint must be an array of numbers.');
 	}
 
 	if (typeof(jsonDb) === 'undefined' || typeof(jsonDb.firstUpdateTs) === 'undefined') {
-		jsonDb = {d:[], currentStep: 0, firstUpdateTs: null};
+		jsonDb = {d:[], firstUpdateTs: null};
 	}
 
 	for (var e=0; e<updateDataPoint.length; e++) {
@@ -103,7 +104,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 	// store updateDataPoint array as lastUpdateDataPoint
 	jsonDb.lastUpdateDataPoint = updateDataPoint;
 
-	// if the updateTimeStamp is farther away than firstUpdateTs+(totalSteps*intervalSeconds*1000)
+	// if the updateTimeStamp is later than firstUpdateTs+(totalSteps*intervalSeconds*1000)
 	// then it is an entirely new chart
 	if (updateTimeStamp >= jsonDb.firstUpdateTs+(totalSteps*2*intervalSeconds*1000)) {
 		// set firstUpdateTs to null so this will be considered the first update
@@ -117,7 +118,6 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 		}
 
 		jsonDb.d = [];
-		jsonDb.currentStep = 0;
 		for (var c=0; c<totalSteps; c++) {
 			var o = [];
 			for (var d=0; d<updateDataPoint.length; d++) {
@@ -130,6 +130,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 			}
 			jsonDb.d.push(o);
 			if (dataType === 'COUNTER') {
+				// this must be done to not have references that result d in r
 				jsonDb.r.push(JSON.parse(JSON.stringify(o)));
 			}
 		}
@@ -161,25 +162,23 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 
 		// get the time steps for each position, based on firstUpdateTs
 		var timeSteps = [];
-		var currentTimeSlot = 0;
+		var currentStep = 0;
 		for (var c=0; c<totalSteps; c++) {
 			timeSteps.push(jsonDb.firstUpdateTs+(intervalSeconds*1000*c));
 
 			if (updateTimeStamp >= jsonDb.firstUpdateTs+(intervalSeconds*1000*c)) {
-				currentTimeSlot = c;
+				currentStep = c;
 			}
 		}
 
 		// now check if this update is in the current time slot
-		if (updateTimeStamp > timeSteps[jsonDb.currentStep+1]) {
+		if (updateTimeStamp >= timeSteps[currentStep]) {
 			// this update is in a completely new time slot
 			dBug(ccBlue+'##### NEW STEP ##### this update is in a new step'+ccReset);
 
-			// set the currentStep to the currentTimeSlot
-			jsonDb.currentStep = currentTimeSlot;
-
 			// shift the data set
-			if (jsonDb.currentStep >= totalSteps-1) {
+			if (currentStep === totalSteps - 1) {
+				// shift the data set
 
 				// calculate how much to shift by
 				var shift = 1;
@@ -223,19 +222,13 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 					// add intervalSeconds to firstUpdateTs
 					jsonDb.firstUpdateTs = jsonDb.firstUpdateTs+(intervalSeconds*1000*shift);
 
-					jsonDb.currentStep -= shift;
-					dBug(ccRed+'changed currentStep: ' + jsonDb.currentStep + ccReset);
+					currentStep -= shift - 1;
+					dBug(ccRed+'changed currentStep: ' + currentStep + ccReset);
 
 				}
 			}
 
-			if (jsonDb.currentStep+1 === totalSteps) {
-				// this is needed after a shift of more than 1 but less than totalSteps
-				// in case there is an update which is beyond the last when calculated against a new firstUpdateTs that may be milliseconds beyond the previous firstUpdateTs
-				jsonDb.currentStep--;
-			}
-
-			dBug(ccBlue+'inserting data at: ' + jsonDb.currentStep + ccReset);
+			dBug(ccBlue+'inserting data at: ' + currentStep + ccReset);
 
 			// handle different dataType
 			switch (dataType) {
@@ -243,7 +236,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 
 					// insert the data for each data point
 					for (var e=0; e<updateDataPoint.length; e++) {
-						jsonDb.d[jsonDb.currentStep][e] = updateDataPoint[e];
+						jsonDb.d[currentStep][e] = updateDataPoint[e];
 					}
 
 					// set the avgCount to 1
@@ -258,45 +251,45 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 						// check for overflow, overflow happens when a counter resets
 						// check the last values to see if they were close to the limit if the previous update
 						// is 3 times the size or larger, meaning if the current update is 33% or smaller it's probably an overflow
-						if (jsonDb.d[jsonDb.currentStep-1][e] > updateDataPoint[e]*3) {
+						if (jsonDb.d[currentStep-1][e] > updateDataPoint[e]*3) {
 
 							// the counter has overflowed, check if this happened near 32 or 64 bit limit
 							dBug(ccBlue+'overflow'+ccReset);
 
 							// the 32 bit limit is 2,147,483,647
 							// check if it was within 10% of that in the last update
-							if (jsonDb.d[jsonDb.currentStep][e]<(2147483647*.1)-2147483647) {
+							if (jsonDb.d[currentStep][e]<(2147483647*.1)-2147483647) {
 								// this was so close to the limit that 32bit adjustments are going to be made
 
 								// for this calculation, add the remainder of subtracting the last data point from the 32 bit limit to the updateDataPoint
-								updateDataPoint[e] += 2147483647-jsonDb.d[jsonDb.currentStep-1][e];
+								updateDataPoint[e] += 2147483647-jsonDb.d[currentStep-1][e];
 								updateDataPoint[e] = round_to_precision(updateDataPoint[e], precision);
 
 								// the 64 bit limit is 9,223,372,036,854,775,807
 								// check if it was within 1% of that
-							} else if (jsonDb.d[jsonDb.currentStep][e]<(9223372036854775807*.01)-9223372036854775807) {
+							} else if (jsonDb.d[currentStep][e]<(9223372036854775807*.01)-9223372036854775807) {
 								// this was so close to the limit that 64bit adjustments are going to be made
 
 								// for this calculation, add the remainder of subtracting the last data point from the 64 bit limit to the updateDataPoint
-								updateDataPoint[e] += 9223372036854775807-jsonDb.d[jsonDb.currentStep-1][e];
+								updateDataPoint[e] += 9223372036854775807-jsonDb.d[currentStep-1][e];
 								updateDataPoint[e] = round_to_precision(updateDataPoint[e], precision);
 
 							}
 						}
 
 
-						if (jsonDb.d[jsonDb.currentStep-1][e] != null) {
+						if (jsonDb.d[currentStep-1][e] != null) {
 							// for a counter, divide the difference of this step and the previous step by
 							// the difference in seconds between the updates
-							var rate = updateDataPoint[e]-jsonDb.d[jsonDb.currentStep-1][e];
+							var rate = updateDataPoint[e]-jsonDb.d[currentStep-1][e];
 							dBug('calculating the rate for '+rate+' units over '+intervalSeconds+' seconds');
 							rate = rate/intervalSeconds;
-							dBug('inserting data with rate '+rate+ ' at time slot '+jsonDb.currentStep);
-							jsonDb.r[jsonDb.currentStep][e] = round_to_precision(rate, precision);
+							dBug('inserting data with rate '+rate+ ' at time slot '+currentStep);
+							jsonDb.r[currentStep][e] = round_to_precision(rate, precision);
 						}
 
 						// insert the data
-						jsonDb.d[jsonDb.currentStep][e] = updateDataPoint[e];
+						jsonDb.d[currentStep][e] = updateDataPoint[e];
 
 					}
 
@@ -307,7 +300,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 
 		} else {
 
-			// being here means that this update is in the same step group as the previous
+			// this update is in the same step group as the previous
 			dBug('##### SAME STEP ##### this update is in the same step as the previous');
 
 			// handle different dataType
@@ -324,12 +317,12 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 							dBug('averaging with a previous update that was itself an average');
 
 							// that means multiply the avgCount of the previous update by the data point of the previous update
-							if (jsonDb.currentStep === 0) {
+							if (currentStep === 0) {
 								// this is the first update
 								// average with currentStep not the previous step
-								var avg = jsonDb.currentAvgCount*jsonDb.d[jsonDb.currentStep][e];
+								var avg = jsonDb.currentAvgCount*jsonDb.d[currentStep][e];
 							} else {
-								var avg = jsonDb.currentAvgCount*jsonDb.d[jsonDb.currentStep-1][e];
+								var avg = jsonDb.currentAvgCount*jsonDb.d[currentStep-1][e];
 							}
 							// add this updateDataPoint
 							avg += updateDataPoint[e];
@@ -339,19 +332,19 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 							avg = avg/(jsonDb.currentAvgCount);
 
 							dBug('updating data point with avg '+avg);
-							jsonDb.d[jsonDb.currentStep][e] = round_to_precision(avg, precision);
+							jsonDb.d[currentStep][e] = round_to_precision(avg, precision);
 
 						} else {
 							// average the previous update with this one
 							dBug('averaging with previous update');
 
 							// add the previous update data point to this one then divide by 2 for the average
-							var avg = (updateDataPoint[e]+jsonDb.d[jsonDb.currentStep][e])/2;
+							var avg = (updateDataPoint[e]+jsonDb.d[currentStep][e])/2;
 							// set the avgCount to 2
 							jsonDb.currentAvgCount = 2;
 							// and insert it
 							dBug('updating data point with avg '+avg);
-							jsonDb.d[jsonDb.currentStep][e] = round_to_precision(avg, precision);
+							jsonDb.d[currentStep][e] = round_to_precision(avg, precision);
 
 						}
 
@@ -362,7 +355,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 					// increase the counter on the last update to this one for each data point
 					// this actually means to modify, not increase because it would be an increased value
 					for (var e=0; e<updateDataPoint.length; e++) {
-						jsonDb.d[jsonDb.currentStep][e] = updateDataPoint[e];
+						jsonDb.d[currentStep][e] = updateDataPoint[e];
 					}
 
 					break;

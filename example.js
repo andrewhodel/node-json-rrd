@@ -35,6 +35,9 @@ function loop() {
                 update.push(now[1]);
             }
         }
+        if (update.length === 0) {
+		return;
+	}
 
         gaugeTest = jsonrrd.update(intervalSeconds, totalSteps, 'GAUGE', update, gaugeTest);
 
@@ -69,6 +72,9 @@ function loop() {
                 }
             }
         }
+        if (update.length === 0) {
+		return;
+	}
 
         counterTest = jsonrrd.update(intervalSeconds, totalSteps, 'COUNTER', update, counterTest);
 
