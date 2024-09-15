@@ -216,7 +216,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 							for (var ee=0; ee<updateDataPoint.length; ee++) {
 								n.push(null);
 							}
-							jsonDb.r.push([]);
+							jsonDb.r.push(n);
 						}
 					}
 
