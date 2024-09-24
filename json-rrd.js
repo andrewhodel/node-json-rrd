@@ -20,18 +20,7 @@ function dBug(s) {
 	//console.log(s);
 }
 
-function round_to_precision(n, precision) {
-
-	var to_round_precision = 10;
-	for (var p=0; p<precision-1; p++) {
-		to_round_precision *= to_round_precision;
-	}
-
-	return Math.round(n * to_round_precision) / to_round_precision;
-
-}
-
-exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoint, jsonDb, precision=2) {
+exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoint, jsonDb) {
 
 	// 24 hours with 5 minute interval
 	// update(5*60, 24*60/5, 'GAUGE', [34], jsonObject);
@@ -68,10 +57,6 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 	for (var e=0; e<updateDataPoint.length; e++) {
 		// set all the points in the updateDataPoint object to be of data type Number
 		updateDataPoint[e] = parseFloat(updateDataPoint[e]);
-
-		// round the number to the precision specified
-		updateDataPoint[e] = round_to_precision(updateDataPoint[e], precision);
-
 	}
 
 	var updateTimeStamp = Date.now();
@@ -264,7 +249,6 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 
 								// for this calculation, add the remainder of subtracting the last data point from the 32 bit limit to the updateDataPoint
 								updateDataPoint[e] += 2147483647-jsonDb.d[currentStep-1][e];
-								updateDataPoint[e] = round_to_precision(updateDataPoint[e], precision);
 
 								// the 64 bit limit is 9,223,372,036,854,775,807
 								// check if it was within 1% of that
@@ -273,7 +257,6 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 
 								// for this calculation, add the remainder of subtracting the last data point from the 64 bit limit to the updateDataPoint
 								updateDataPoint[e] += 9223372036854775807-jsonDb.d[currentStep-1][e];
-								updateDataPoint[e] = round_to_precision(updateDataPoint[e], precision);
 
 							}
 						}
@@ -286,7 +269,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 							dBug('calculating the rate for '+rate+' units over '+intervalSeconds+' seconds');
 							rate = rate/intervalSeconds;
 							dBug('inserting data with rate '+rate+ ' at time slot '+currentStep);
-							jsonDb.r[currentStep][e] = round_to_precision(rate, precision);
+							jsonDb.r[currentStep][e] = rate;
 						}
 
 						// insert the data
@@ -333,7 +316,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 							avg = avg/(jsonDb.currentAvgCount);
 
 							dBug('updating data point with avg '+avg);
-							jsonDb.d[currentStep][e] = round_to_precision(avg, precision);
+							jsonDb.d[currentStep][e] = avg;
 
 						} else {
 							// average the previous update with this one
@@ -345,7 +328,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 							jsonDb.currentAvgCount = 2;
 							// and insert it
 							dBug('updating data point with avg '+avg);
-							jsonDb.d[currentStep][e] = round_to_precision(avg, precision);
+							jsonDb.d[currentStep][e] = avg;
 
 						}
 
