@@ -6,7 +6,7 @@ Example
 ======
 
 On a linux system you can run example.js which provides a simple example of collecting and displaying
-traffic statistics for an interface with a COUNTER and the free/total memory using a GAUGE.
+traffic statistics for an interface with a COUNTER and the free/total memory using a GUAGE.
 
 Documentation
 =============
@@ -17,9 +17,9 @@ returns a JSON object representing the RRD datastore.
 
 * intervalSeconds		time between updates
 * totalSteps			total steps of data
-* dataType			GAUGE or COUNTER
+* dataType			GUAGE or COUNTER
 <pre>
-    GAUGE - values that stay within the range of defined integer types, like the value of raw materials.
+    GUAGE - values that stay within the range of defined integer types, like the value of raw materials.
     COUNTER - values that count and can exceed the maximum of a defined integer type.
 </pre>
 * updateDataPoint[]		array of data points for the update, you must maintain the same order on following update()'s
@@ -27,13 +27,13 @@ returns a JSON object representing the RRD datastore.
 
 <pre>
 //24 hours with 5 minute interval
-update(5*60, 24*60/5, 'GAUGE', [34,100], jsonObject);
+update(5*60, 24*60/5, 'GUAGE', [34,100], jsonObject);
 
 //30 days with 1 hour interval
-update(60*60, 30*24, 'GAUGE', [34,100], jsonObject);
+update(60*60, 30*24, 'GUAGE', [34,100], jsonObject);
 
 //365 days with 1 day interval
-update(24*60*60, 365*24, 'GAUGE', [34,100], jsonObject);
+update(24*60*60, 365*24, 'GUAGE', [34,100], jsonObject);
 </pre>
 
 JSON Data Format
