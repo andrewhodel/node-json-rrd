@@ -230,24 +230,24 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 					for (var e=0; e<updateDataPoint.length; e++) {
 
 						// check for overflow, overflow happens when a counter resets
-						// if the last value is 3 times larger than the new value, there was an overflow
-						if (jsonDb.d[currentStep-1][e] > updateDataPoint[e]*3) {
+						// known by this update value being less than the previous
+						if (jsonDb.d[currentStep-1][e] > updateDataPoint[e]) {
 
 							// the counter has overflowed, check if this happened near 32 or 64 bit limit
 							dBug(ccBlue+'overflow'+ccReset);
 
-							// the 32 bit limit is 2,147,483,647
-							// check if it was within 10% of that in the last update
-							if (jsonDb.d[currentStep][e]<(2147483647*.1)-2147483647) {
-								// this was so close to the limit that 32bit adjustments are going to be made
+							if (jsonDb.d[currentStep-1][e] < 2147483647 && jsonDb.d[currentStep-1][e] > 2147483647 * .7) {
+
+								// the 32 bit limit is 2,147,483,647
+								// the last update was between 70% and 100% of the 32 bit uint limit
 
 								// for this calculation, add the remainder of subtracting the last data point from the 32 bit limit to the updateDataPoint
 								updateDataPoint[e] += 2147483647-jsonDb.d[currentStep-1][e];
 
+							} else if (jsonDb.d[currentStep-1][e] < 9223372036854775807 && jsonDb.d[currentStep-1][e] > 9223372036854775807 * .7) {
+
 								// the 64 bit limit is 9,223,372,036,854,775,807
-								// check if it was within 1% of that
-							} else if (jsonDb.d[currentStep][e]<(9223372036854775807*.01)-9223372036854775807) {
-								// this was so close to the limit that 64bit adjustments are going to be made
+								// the last update was between 70% and 100% of the 64 bit uint limit
 
 								// for this calculation, add the remainder of subtracting the last data point from the 64 bit limit to the updateDataPoint
 								updateDataPoint[e] += 9223372036854775807-jsonDb.d[currentStep-1][e];
