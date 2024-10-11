@@ -54,11 +54,6 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 		jsonDb = {d:[], firstUpdateTs: null};
 	}
 
-	for (var e=0; e<updateDataPoint.length; e++) {
-		// set all the points in the updateDataPoint object to be of data type Number
-		updateDataPoint[e] = parseFloat(updateDataPoint[e]);
-	}
-
 	var updateTimeStamp = Date.now();
 
 	// intervalSeconds - time between updates
@@ -235,8 +230,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 					for (var e=0; e<updateDataPoint.length; e++) {
 
 						// check for overflow, overflow happens when a counter resets
-						// check the last values to see if they were close to the limit if the previous update
-						// is 3 times the size or larger, meaning if the current update is 33% or smaller it's probably an overflow
+						// if the last value is 3 times larger than the new value, there was an overflow
 						if (jsonDb.d[currentStep-1][e] > updateDataPoint[e]*3) {
 
 							// the counter has overflowed, check if this happened near 32 or 64 bit limit
