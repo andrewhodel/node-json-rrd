@@ -23,13 +23,13 @@ function dBug(s) {
 exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoint, jsonDb) {
 
 	// 24 hours with 5 minute interval
-	// update(5*60, 24*60/5, 'GUAGE', [34], jsonObject);
+	// update(5*60, 24*60/5, 'GAUGE', [34], jsonObject);
 
 	// 30 days with 1 hour interval
-	// update(60*60, 30*24/1, 'GUAGE', [34], jsonObject);
+	// update(60*60, 30*24/1, 'GAUGE', [34], jsonObject);
 
 	// 365 days with 1 day interval
-	// update(24*60*60, 365*24/1, 'GUAGE', [34], jsonObject);
+	// update(24*60*60, 365*24/1, 'GAUGE', [34], jsonObject);
 
 	if (isNaN(intervalSeconds) === true) {
 		throw new Error('intervalSeconds must be a number.');
@@ -40,7 +40,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 	}
 
 	if (typeof(dataType) !== 'string') {
-		throw new Error('dataType must be a string of "GUAGE" or "COUNTER".');
+		throw new Error('dataType must be a string of "GAUGE" or "COUNTER".');
 	}
 
 	if (typeof(updateDataPoint) === 'object' && updateDataPoint.length > 0) {
@@ -58,8 +58,8 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 
 	// intervalSeconds - time between updates
 	// totalSteps - total steps of data
-	// dataType - GUAGE or COUNTER
-	//  GUAGE - values that stay within the range of defined integer types, like the value of raw materials.
+	// dataType - GAUGE or COUNTER
+	//  GAUGE - values that stay within the range of defined integer types, like the value of raw materials.
 	//  COUNTER - values that count and can exceed the maximum of a defined integer type.
 	// updateTimeStamp - unix epoch timestamp of this update
 	// updateDataPoint - data object for this update
@@ -213,7 +213,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 
 			// handle different dataType
 			switch (dataType) {
-				case 'GUAGE':
+				case 'GAUGE':
 
 					// insert the data for each data point
 					for (var e=0; e<updateDataPoint.length; e++) {
@@ -284,7 +284,7 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 			// handle different dataType
 			switch (dataType) {
 
-				case 'GUAGE':
+				case 'GAUGE':
 					// this update needs to be averaged with the last
 
 					// do this for each data point

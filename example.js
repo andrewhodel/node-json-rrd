@@ -39,7 +39,7 @@ function loop() {
 		return;
 	}
 
-        gaugeTest = jsonrrd.update(intervalSeconds, totalSteps, 'GUAGE', update, gaugeTest);
+        gaugeTest = jsonrrd.update(intervalSeconds, totalSteps, 'GAUGE', update, gaugeTest);
 
 	fs.writeFileSync('./gaugeTest.db', JSON.stringify(gaugeTest));
 
