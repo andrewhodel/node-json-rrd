@@ -50,8 +50,13 @@ exports.update = function (intervalSeconds, totalSteps, dataType, updateDataPoin
 		throw new Error('updateDataPoint must be an array of numbers.');
 	}
 
-	if (typeof(jsonDb) === 'undefined' || typeof(jsonDb.firstUpdateTs) === 'undefined') {
-		jsonDb = {d:[], firstUpdateTs: null};
+	if (typeof(jsonDb) !== 'object') {
+		throw new Error('jsonDb must be a {}.');
+	}
+
+	if (Object.keys(jsonDb).length === 0) {
+		jsonDb.d = [];
+		jsonDb.firstUpdateTs = null;
 	}
 
 	var updateTimeStamp = Date.now();

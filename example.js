@@ -2,7 +2,8 @@ var jsonrrd = require('./json-rrd.js');
 var fs = require('fs');
 
 // example for node-json-rrd
-// shows basic collection and reporting for linux with node-json-rrd
+// shows basic collection and reporting on Linux with node-json-rrd
+console.log('node-json-rrd example, requires Linux.');
 
 var intervalSeconds = 8;
 var totalSteps = 10;
@@ -24,6 +25,10 @@ function loop() {
 
     fs.readFile('/proc/meminfo', function (err, data) {
 
+	if (err) {
+		throw err;
+	}
+
         var lines = data.toString().split("\n");
         var update = [];
         for (var i=0; i<lines.length; i++) {
@@ -39,7 +44,7 @@ function loop() {
 		return;
 	}
 
-        gaugeTest = jsonrrd.update(intervalSeconds, totalSteps, 'GAUGE', update, gaugeTest);
+        jsonrrd.update(intervalSeconds, totalSteps, 'GAUGE', update, gaugeTest);
 
 	fs.writeFileSync('./gaugeTest.db', JSON.stringify(gaugeTest));
 
@@ -50,6 +55,10 @@ function loop() {
     });
 
     fs.readFile('/proc/net/dev', function (err, data) {
+
+	if (err) {
+		throw err;
+	}
 
         var lines = data.toString().split("\n");
         var update = [];
@@ -76,7 +85,7 @@ function loop() {
 		return;
 	}
 
-        counterTest = jsonrrd.update(intervalSeconds, totalSteps, 'COUNTER', update, counterTest);
+        jsonrrd.update(intervalSeconds, totalSteps, 'COUNTER', update, counterTest);
 
 	fs.writeFileSync('./counterTest.db', JSON.stringify(counterTest));
 
